@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/read"
+        android:title="Resume reading"
+        android:orderInCategory="0" />
+    <item
+        android:id="@+id/chapter_list"
+        android:title="View chapter list"
+        android:orderInCategory="0" />
+    <item
+        android:id="@+id/tag"
+        android:title="Set tag"
+        android:orderInCategory="0" />
+    <item
+        android:id="@+id/clear_image"
+        android:title="Clear cover cache"
+        android:orderInCategory="0" />
+    <item
+        android:id="@+id/clear_progress"
+        android:title="Clear progress"
+        android:orderInCategory="0" />
+    <item
+        android:id="@+id/remove"
+        android:title="Remove from favorites"
+        android:orderInCategory="0" />
+    <item
+        android:id="@+id/clear_latest"
+        android:title="Clear latest chapter"
+        android:orderInCategory="0" />
+    <item
+        android:id="@+id/new_chapter"
+        android:title="Mark as new chapter"
+        android:orderInCategory="0" />
+</menu>

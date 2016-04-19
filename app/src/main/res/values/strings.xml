@@ -1,0 +1,58 @@
+<resources>
+    <string name="app_name">Manga</string>
+
+    <string name="manga_info_authorartist">Art and story by %s</string>
+    <string name="manga_info_author">Story by %s</string>
+    <string name="manga_info_artist">Art by %s</string>
+    <string name="manga_info_status_header">Status:</string>
+    <string name="manga_info_status_text" formatted="false">%d chapters (%s)</string>
+    <string name="manga_info_description_header">Description:</string>
+    <string name="manga_info_genres_header">Genres:</string>
+
+    <string name="action_direction">Change reading direction</string>
+    <string name="action_jump">Jump to page</string>
+    <string name="action_reload">Reload page</string>
+    <string name="action_chapter_list">Chapter list</string>
+    <string name="action_prev_chapter">Previous chapter</string>
+    <string name="action_next_chapter">Next chapter</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_favorite_add">Add to favorites</string>
+    <string name="action_favorite_remove">Remove from favorites</string>
+    <string name="action_sort">Sort</string>
+    <string name="action_filter">Filter tags</string>
+    <string name="action_search">Search</string>
+    <string name="action_update">Check for new chapters</string>
+    <string name="action_updatemode">Update mode</string>
+    <string name="action_tag_names">Rename tags</string>
+    <string name="action_backup">Backup to SD card</string>
+    <string name="action_restore">Restore from SD card</string>
+
+    <string name="favorite_added">%s has been added to your favorites.</string>
+    <string name="favorite_removed">%s has been removed from your favorites.</string>
+
+    <string name="favorite_not_started">Not started</string>
+    <string name="favorite_load_manga">Retrieving manga info…</string>
+    <string name="favorite_load_failed">Unable to retrieve manga info.</string>
+    <string name="favorite_checking_text" formatted="false">Checking for new chapters… (%d/%d)\n%s</string>
+    <string name="favorite_new_chapters_title">New chapters available!</string>
+    <string name="favorite_notification_checking_title">Checking for new chapters…</string>
+    <string name="favorite_notification_checking_text" formatted="false">(%d/%d) %s</string>
+    <string name="favorite_notification_new_chapters">%d manga has new chapters available!</string>
+
+    <string name="chapter_load_list">Retrieving chapter list…</string>
+    <string name="chapter_date">Uploaded %s</string>
+
+    <string name="manga_load_list">Retrieving manga list…</string>
+
+    <string name="viewer_title_bar" formatted="false">%s %s page %d/%d</string>
+    <string name="viewer_loading_bar_page">Loading page %d…</string>
+    <string name="viewer_loading_bar_chapter">Loading chapter…</string>
+    <string name="viewer_first_chapter">This is the first chapter of %s.</string>
+    <string name="viewer_last_chapter">This is the last available chapter of %s.</string>
+    <string name="viewer_first_page">This is the first page of %s.</string>
+    <string name="viewer_last_page">This is the last available page of %s.</string>
+    <string name="viewer_load_chapter_failed">Failed to load chapter.</string>
+
+
+
+</resources>

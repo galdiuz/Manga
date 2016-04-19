@@ -1,0 +1,8 @@
+<resources>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="manga_info_margin_heading">6dp</dimen>
+    <dimen name="manga_info_margin_text">16dp</dimen>
+    <dimen name="chapter_list_margin">6dp</dimen>
+</resources>

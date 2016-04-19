@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/sort"
+        android:title="@string/action_sort"
+        android:icon="@drawable/ic_action_sort_1"
+        android:orderInCategory="0"
+        android:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/filter"
+        android:title="@string/action_filter"
+        android:icon="@drawable/ic_action_tags"
+        android:orderInCategory="0"
+        android:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/search"
+        android:title="@string/action_search"
+        android:icon="@drawable/ic_action_search"
+        android:orderInCategory="0"
+        android:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/update"
+        android:title="@string/action_update"
+        android:orderInCategory="0"
+        android:showAsAction="never" />
+    <item
+        android:id="@+id/updatemode"
+        android:title="@string/action_updatemode"
+        android:orderInCategory="0"
+        android:showAsAction="never" />
+    <item
+        android:id="@id/tag"
+        android:title="@string/action_tag_names"
+        android:orderInCategory="0"
+        android:showAsAction="never" />
+    <item
+        android:id="@+id/backup"
+        android:title="@string/action_backup"
+        android:orderInCategory="0"
+        android:showAsAction="never" />
+    <item
+        android:id="@+id/restore"
+        android:title="@string/action_restore"
+        android:orderInCategory="0"
+        android:showAsAction="never" />
+    <item
+        android:id="@+id/settings"
+        android:title="@string/action_settings"
+        android:orderInCategory="0"
+        android:showAsAction="never" />
+</menu>

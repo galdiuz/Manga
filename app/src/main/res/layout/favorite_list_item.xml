@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:id="@+id/image"
+        android:contentDescription="@null"
+        android:background="@drawable/drop_shadow"
+        android:cropToPadding="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <ImageView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:id="@+id/tag"
+        android:contentDescription="@null"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <ImageView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:id="@+id/updateicon"
+        android:src="@drawable/ic_action_news"
+        android:contentDescription="@null"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:textStyle="bold"
+        android:ellipsize="marquee"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:singleLine="true"
+        android:scrollHorizontally="true"
+        android:id="@+id/title"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/image"
+        android:layout_toEndOf="@+id/image"
+        android:layout_toLeftOf="@id/tag"
+        android:layout_toStartOf="@id/tag" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:id="@+id/progress"
+        android:layout_below="@+id/title"
+        android:layout_toRightOf="@+id/image"
+        android:layout_toEndOf="@+id/image" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:id="@+id/update"
+        android:layout_below="@+id/progress"
+        android:layout_toRightOf="@+id/image"
+        android:layout_toEndOf="@+id/image" />
+
+
+</RelativeLayout>

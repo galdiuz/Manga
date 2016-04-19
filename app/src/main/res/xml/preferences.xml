@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <CheckBoxPreference
+
+        android:key="remember_zoom"
+        android:title="Remember zoom"
+        android:summary="Retain zoom level between pages"
+        android:defaultValue="true" />
+
+
+    <com.galdiuz.manga.other.FloatListPreference
+        android:key="doubletap_zoom"
+        android:title="Double-tap zoom level"
+        android:entries="@array/test_entires"
+        android:entryValues="@array/test_values"
+        android:defaultValue="1.5" />
+
+
+</PreferenceScreen>
