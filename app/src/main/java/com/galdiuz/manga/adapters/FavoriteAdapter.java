@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -131,8 +132,8 @@ public class FavoriteAdapter extends BaseAdapter {
             final File coverImage = new File(coversPath + "/" + f.id);
             if(coverImage.exists()) {
                 holder.image.setImageResource(android.R.color.transparent);
-                Bitmap bmp = BitmapFactory.decodeFile(coverImage.getAbsolutePath());
-                holder.image.setImageBitmap(bmp);
+                String uri = Uri.fromFile(coverImage).toString();
+                App.getImageLoader().displayImage(uri, holder.image);
             }
             else {
                 DisplayImageOptions options = new DisplayImageOptions.Builder()
