@@ -24,6 +24,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Pair;
 import android.view.DragEvent;
@@ -240,6 +241,12 @@ public class ImageViewerActivity extends Activity implements CustomPhotoViewAtta
         int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
         if (resourceId > 0) {
             statusBarHeight = getResources().getDimensionPixelSize(resourceId);
+            DisplayMetrics metrics = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(metrics);
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(metrics.widthPixels, metrics.heightPixels + statusBarHeight);
+            params.setMargins(0, statusBarHeight, 0, 0);
+            imageViewCurrent.setLayoutParams(params);
+            imageViewOther.setLayoutParams(params);
         }
 
         if(retainedFragment == null) {
