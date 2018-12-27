@@ -15,5 +15,9 @@
         android:entryValues="@array/test_values"
         android:defaultValue="1.5" />
 
+    <CheckBoxPreference
+        android:key="enable_drive"
+        android:title="Save favorites to Google Drive"
+        android:summary="Automatically saves backup of favorites to Google Drive" />
 
 </PreferenceScreen>

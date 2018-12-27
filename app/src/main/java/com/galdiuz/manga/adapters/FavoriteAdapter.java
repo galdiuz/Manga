@@ -140,7 +140,7 @@ public class FavoriteAdapter extends BaseAdapter {
                         .cloneFrom(App.getDefaultDisplayImageOptions())
                         .showImageOnLoading(android.R.color.transparent)
                         .build();
-                App.getImageLoader().displayImage("https://cdn.mangaeden.com/mangasimg/" + f.image, holder.image, options, new ImageLoadingListener() {
+                App.getImageLoader().displayImage("http://cdn.mangaeden.com/mangasimg/" + f.image, holder.image, options, new ImageLoadingListener() {
                     @Override
                     public void onLoadingStarted(String imageUri, View view) {}
 

@@ -1,5 +1,6 @@
 package com.galdiuz.manga;
 
+import android.Manifest;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -12,7 +13,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -34,6 +39,30 @@ import com.galdiuz.manga.classes.Chapter;
 import com.galdiuz.manga.classes.ChapterDeserializer;
 import com.galdiuz.manga.classes.Favorite;
 import com.galdiuz.manga.classes.Manga;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApi;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.drive.Drive;
+import com.google.android.gms.drive.DriveContents;
+import com.google.android.gms.drive.DriveFile;
+import com.google.android.gms.drive.DriveFolder;
+import com.google.android.gms.drive.DriveResourceClient;
+import com.google.android.gms.drive.Metadata;
+import com.google.android.gms.drive.MetadataBuffer;
+import com.google.android.gms.drive.MetadataChangeSet;
+import com.google.android.gms.drive.query.Query;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
@@ -49,10 +78,14 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Set;
 
 public class FavoriteActivity extends Activity implements
         TaskFragment.TaskCallbacks<Favorite, Manga>,
@@ -63,6 +96,7 @@ public class FavoriteActivity extends Activity implements
     private boolean updatemode;
 
     private static final String TASKTAG = "download";
+    private static final int PERMISSION_BACKUP = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,9 +104,9 @@ public class FavoriteActivity extends Activity implements
         setContentView(R.layout.activity_favorite);
 
         ActionBar ab = getActionBar();
-        if(ab != null) ab.setDisplayHomeAsUpEnabled(true);
+        if (ab != null) ab.setDisplayHomeAsUpEnabled(true);
 
-        ListView listView = (ListView)findViewById(R.id.listView);
+        ListView listView = (ListView) findViewById(R.id.listView);
         listView.setFastScrollEnabled(true);
 
         adapter = new FavoriteAdapter(this);
@@ -86,7 +120,8 @@ public class FavoriteActivity extends Activity implements
             public void onScrollStateChanged(AbsListView view, int scrollState) {
                 if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING) {
                     App.getImageLoader().pause();
-                } else {
+                }
+                else {
                     App.getImageLoader().resume();
                 }
             }
@@ -100,7 +135,7 @@ public class FavoriteActivity extends Activity implements
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Favorite f = (Favorite) parent.getItemAtPosition(position);
-                if(updatemode) {
+                if (updatemode) {
                     f.checkForUpdates = !f.checkForUpdates;
                     Favorite.saveFavorites();
                     adapter.updateFavorites();
@@ -120,22 +155,22 @@ public class FavoriteActivity extends Activity implements
             @Override
             public void onReceive(Context context, Intent intent) {
                 int type = intent.getIntExtra("type", -1);
-                if(type == UpdateService.PROGRESS) {
+                if (type == UpdateService.PROGRESS) {
                     int current = intent.getIntExtra("current", -1);
                     int total = intent.getIntExtra("total", -1);
                     String title = intent.getStringExtra("title");
-                    RelativeLayout layout = (RelativeLayout)findViewById(R.id.progessLayout);
+                    RelativeLayout layout = (RelativeLayout) findViewById(R.id.progessLayout);
                     layout.setVisibility(View.VISIBLE);
-                    ProgressBar bar = (ProgressBar)findViewById(R.id.progressBar);
+                    ProgressBar bar = (ProgressBar) findViewById(R.id.progressBar);
                     bar.setProgress(current);
                     bar.setMax(total);
-                    TextView textView = (TextView)findViewById(R.id.progressText);
+                    TextView textView = (TextView) findViewById(R.id.progressText);
                     textView.setText(getString(R.string.favorite_checking_text, current, total, title));
                 }
-                else if(type == UpdateService.DONE) {
-                    RelativeLayout layout = (RelativeLayout)findViewById(R.id.progessLayout);
+                else if (type == UpdateService.DONE) {
+                    RelativeLayout layout = (RelativeLayout) findViewById(R.id.progessLayout);
                     layout.setVisibility(View.INVISIBLE);
-                    if(intent.getIntExtra("updated", 0) > 0) {
+                    if (intent.getIntExtra("updated", 0) > 0) {
                         showUpdates();
                     }
                 }
@@ -158,7 +193,7 @@ public class FavoriteActivity extends Activity implements
     @Override
     protected void onRestart() {
         adapter.updateFavorites();
-        RelativeLayout layout = (RelativeLayout)findViewById(R.id.progessLayout);
+        RelativeLayout layout = (RelativeLayout) findViewById(R.id.progessLayout);
         layout.setVisibility(View.INVISIBLE);
         showUpdates();
         super.onRestart();
@@ -166,9 +201,9 @@ public class FavoriteActivity extends Activity implements
 
     @Override
     public void onBackPressed() {
-        if(updatemode) {
+        if (updatemode) {
             updatemode = false;
-            Toast.makeText(this, "Updatemode disabled", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Update mode disabled", Toast.LENGTH_SHORT).show();
         }
         else {
             super.onBackPressed();
@@ -188,15 +223,19 @@ public class FavoriteActivity extends Activity implements
 
         if (id == R.id.sort) {
             SortDialog.showDialog(this);
+
             return true;
         }
         else if (id == R.id.filter) {
             FilterTagDialog.showDialog(this);
+
             return true;
         }
         else if (id == R.id.search) {
-            MessageDialog.showDialog(this, "Not yet implemented");
+            test();
+            //MessageDialog.showDialog(this, "Not yet implemented");
             // TODO: Implement
+
             return true;
         }
         else if (id == R.id.update) {
@@ -204,94 +243,264 @@ public class FavoriteActivity extends Activity implements
             startService(intent);
         }
         else if (id == R.id.updatemode) {
-            if(!updatemode) {
+            if (!updatemode) {
                 // TODO: Replace with string resource, find better name
                 updatemode = true;
-                Toast.makeText(this, "Updatemode enabled", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Select a manga to toggle automatic updates.", Toast.LENGTH_SHORT).show();
             }
             else {
                 updatemode = false;
-                Toast.makeText(this, "Updatemode disabled", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Update mode disabled", Toast.LENGTH_SHORT).show();
             }
         }
         else if (id == R.id.tag) {
             RenameTagsDialog.showDialog(this);
         }
         else if (id == R.id.backup) {
-
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            File folder = new File(App.FOLDER);
-            boolean success = true;
-            if(!folder.exists()) {
-                success = folder.mkdir();
-            }
-            if(success) {
-                // TODO: Custom name for file
-                File file = new File(folder + "favorites.json");
-                try {
-                    FileWriter fw = new FileWriter(file);
-                    BufferedWriter bw = new BufferedWriter(fw);
-                    String wah = gson.toJson(Favorite.getFavorites().values());
-                    bw.write(wah);
-                    bw.close();
-                    MessageDialog.showDialog(this, "Backup complete!");
-
-                }
-                catch (IOException e) {
-                    Log.e("SaveFavorites", "IOException", e);
-                }
-                showUpdates();
-            }
+            createBackup();
 
             return true;
         }
         else if (id == R.id.restore) {
-            // TODO: Select file
-            File file = new File(App.FOLDER + "favorites.json");
-            if(file.exists()) {
-                Gson gson = new Gson();
-                Favorite.getFavorites().clear();
-                try {
-                    FileReader fr = new FileReader(file);
-                    BufferedReader br = new BufferedReader(fr);
-                    Favorite[] array = gson.fromJson(br, Favorite[].class);
-                    for (Favorite f : array) {
-                        Favorite.getFavorites().put(f.id, f);
-                    }
-                    Favorite.saveFavorites();
-                    MessageDialog.showDialog(this, "Restore complete!");
-                }
-                catch (FileNotFoundException e) {
-                    Log.e("GetFavorites", "favorites.json not found", e);
-                }
-                catch (JsonSyntaxException e) {
-                    Log.e("GetFavorites", "favorites.json malformed", e);
-                }
-            }
+            restoreBackup();
 
             return true;
         }
         else if (id == R.id.settings) {
             startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
+
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
+    private GoogleSignInClient buildGoogleSignInClient() {
+        GoogleSignInOptions signInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestScopes(Drive.SCOPE_APPFOLDER, Drive.SCOPE_FILE)
+                .build();
+
+        return GoogleSignIn.getClient(this, signInOptions);
+    }
+
+    private void test() {
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+
+
+        /*buildGoogleSignInClient().revokeAccess().addOnCompleteListener(this, new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                Log.d("a", "signed out");
+            }
+        });
+        if (true) return;*/
+        //startActivityForResult(buildGoogleSignInClient().getSignInIntent(), 1);
+
+        //Set<Scope> grantedScopes = account.getGrantedScopes();
+
+
+
+        /*if (true) {
+            return;
+        }*/
+
+        if (account == null) {
+            Log.d("testdrive", "login");
+            startActivityForResult(buildGoogleSignInClient().getSignInIntent(), 1);
+        }
+        else {
+            Log.d("testdrive", "else");
+            w(account);
+        }
+    }
+
+    private void w(GoogleSignInAccount account) {
+        Log.d("testdrive", "write");
+        final DriveResourceClient client = Drive.getDriveResourceClient(this, account);
+        final Task<DriveFolder> appFolder = client.getRootFolder();
+        final Task<DriveContents> createContents = client.createContents();
+        Tasks.whenAll(appFolder, createContents)
+                .continueWithTask(new Continuation<Void, Task<DriveFile>>() {
+                    @Override
+                    public Task<DriveFile> then(@NonNull Task<Void> task) throws Exception {
+                        Log.d("testdrive", "task");
+                        DriveFolder parent = appFolder.getResult();
+                        Log.d("testdrive", "parent");
+                        DriveContents contents = createContents.getResult();
+                        Log.d("testdrive", "Contents");
+                        OutputStream outputStream = contents.getOutputStream();
+                        Log.d("testdrive", "stream");
+                        Writer writer = null;
+                        try {
+                            Log.d("testdrive", "Writing");
+                            writer = new OutputStreamWriter(outputStream);
+                            writer.write("Hello world!");
+                            Log.d("testdrive", "Wrote");
+                        }
+                        finally {
+                            if (writer != null) {
+                                writer.close();
+                            }
+                        }
+
+                        MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                                .setTitle("Test file.txt")
+                                .setMimeType("text/plain")
+                                .build();
+
+                        return client.createFile(parent, changeSet, contents);
+                    }
+                })
+                .addOnSuccessListener(this, new OnSuccessListener<DriveFile>() {
+                    @Override
+                    public void onSuccess(DriveFile driveFile) {
+                        Log.d("testdrive", "success");
+                        Log.d("testdrive", driveFile.getDriveId().encodeToString());
+                    }
+                })
+                .addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("testdrive", "Error", e);
+                    }
+                });
+    }
+
+    private void r(GoogleSignInAccount account) {
+
+        final DriveResourceClient client = Drive.getDriveResourceClient(this, account);
+        final Task<DriveFolder> appFolder = client.getRootFolder();
+        Log.d("testdrive", "r");
+
+        appFolder
+                .continueWithTask(new Continuation<DriveFolder, Task<MetadataBuffer>>() {
+                    @Override
+                    public Task<MetadataBuffer> then(@NonNull Task<DriveFolder> task) throws Exception {
+                        Log.d("testdrive", "continue");
+                        DriveFolder parent = appFolder.getResult();
+
+                        return client.queryChildren(parent, new Query.Builder().build());
+                    }
+                })
+                .addOnSuccessListener(this, new OnSuccessListener<MetadataBuffer>() {
+                    @Override
+                    public void onSuccess(MetadataBuffer metadata) {
+                        for (Metadata data : metadata) {
+                            Log.i("drivetest", data.getTitle());
+                        }
+                    }
+                })
+                .addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("testdrive", e.getMessage());
+                    }
+                });
+    }
+
+    @Override
+    protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+        Log.i("test", "login");
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case 1:
+                Log.i("testdrive", Integer.toString(resultCode));
+                if (resultCode == RESULT_OK) {
+                    test();
+                }
+        }
+    }
+
+    private void createBackup() {
+        String permission = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{permission}, PERMISSION_BACKUP);
+
+            return;
+        }
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        File folder = new File(App.FOLDER);
+        boolean success = true;
+
+        if (!folder.exists()) {
+            success = folder.mkdir();
+        }
+        if (success) {
+            // TODO: Custom name for file
+            File file = new File(folder + "/favorites.json");
+            try {
+                FileWriter fw = new FileWriter(file);
+                BufferedWriter bw = new BufferedWriter(fw);
+                String wah = gson.toJson(Favorite.getFavorites().values());
+                bw.write(wah);
+                bw.close();
+                MessageDialog.showDialog(this, "Backup complete!");
+
+            }
+            catch (IOException e) {
+                Log.e("SaveFavorites", "IOException", e);
+            }
+            showUpdates();
+        }
+    }
+
+    private void restoreBackup() {
+        // TODO: Select file
+        File file = new File(App.FOLDER + "/favorites.json");
+        if (file.exists()) {
+            Gson gson = new Gson();
+            Favorite.getFavorites().clear();
+            try {
+                FileReader fr = new FileReader(file);
+                BufferedReader br = new BufferedReader(fr);
+                Favorite[] array = gson.fromJson(br, Favorite[].class);
+                for (Favorite f : array) {
+                    Favorite.getFavorites().put(f.id, f);
+                }
+                Favorite.saveFavorites();
+                MessageDialog.showDialog(this, "Restore complete!");
+            }
+            catch (FileNotFoundException e) {
+                MessageDialog.showDialog(this, "favorites.json not found.");
+            }
+            catch (JsonSyntaxException e) {
+                MessageDialog.showDialog(this, "favorites.json is malformed.");
+                Log.e("GetFavorites", "favorites.json malformed", e);
+            }
+        }
+        else {
+            MessageDialog.showDialog(this, "favorites.json not found.");
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        switch (requestCode) {
+            case PERMISSION_BACKUP: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    createBackup();
+                }
+            }
+        }
+    }
+
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         AdapterView.AdapterContextMenuInfo info;
-        info = (AdapterView.AdapterContextMenuInfo)menuInfo;
-        Favorite f = (Favorite)adapter.getItem(info.position);
+        info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+        Favorite f = (Favorite) adapter.getItem(info.position);
         menu.setHeaderTitle(f.title);
         getMenuInflater().inflate(R.menu.context_favorite, menu);
-        if(f.progressChapter == null) {
+        if (f.progressChapter == null) {
             menu.removeItem(R.id.read);
             menu.removeItem(R.id.clear_progress);
         }
-        if(f.markAsNew) {
+        if (f.markAsNew) {
             // TODO: Replace with string resource
             menu.findItem(R.id.new_chapter).setTitle("Unmark new chapter");
         }
@@ -299,9 +508,9 @@ public class FavoriteActivity extends Activity implements
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         int id = item.getItemId();
-        Favorite f = (Favorite)adapter.getItem(info.position);
+        Favorite f = (Favorite) adapter.getItem(info.position);
 
         if (id == R.id.read) {
             read(f);
@@ -314,8 +523,8 @@ public class FavoriteActivity extends Activity implements
         }
         else if (id == R.id.clear_image) {
             File image = new File(App.FOLDER + "cache/covers/" + f.id);
-            if(image.exists()) {
-                if(image.delete()) {
+            if (image.exists()) {
+                if (image.delete()) {
                     Toast.makeText(this, "Cover cache cleared", Toast.LENGTH_SHORT).show();
                 }
                 else {
@@ -368,12 +577,12 @@ public class FavoriteActivity extends Activity implements
 
     private void showUpdates() {
         ArrayList<Favorite> updated = new ArrayList<>();
-        for(Favorite f : Favorite.getFavorites().values()) {
-            if(f.updated) {
+        for (Favorite f : Favorite.getFavorites().values()) {
+            if (f.updated) {
                 updated.add(f);
             }
         }
-        if(updated.size() > 0) {
+        if (updated.size() > 0) {
             StringBuilder sb = new StringBuilder();
             String first = "";
             for (Favorite f : updated) {
@@ -384,7 +593,7 @@ public class FavoriteActivity extends Activity implements
             Favorite.saveFavorites();
             MessageDialog.showDialog(this, getString(R.string.favorite_new_chapters_title), sb.toString());
             adapter.updateFavorites();
-            NotificationManager mgr = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+            NotificationManager mgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             mgr.cancel(UpdateService.NOTIFICATION_NEW_ID);
         }
     }
@@ -402,6 +611,7 @@ public class FavoriteActivity extends Activity implements
 
             URL url = new URL("https://www.mangaeden.com/api/manga/" + favorite.id);
             con = (HttpURLConnection) url.openConnection();
+            con.connect();
 
             Gson gson = new GsonBuilder().registerTypeAdapter(Chapter.class, new ChapterDeserializer()).create();
             JsonReader reader = new JsonReader(new InputStreamReader(con.getInputStream()));
@@ -414,31 +624,32 @@ public class FavoriteActivity extends Activity implements
 
             return manga;
         }
-        catch(IOException ex) {
-            Log.e("DownloadFavoriteManga",  "Exception");
+        catch (IOException ex) {
+            Log.e("DownloadFavoriteManga", "Exception");
         }
         finally {
-            if(con != null)
+            if (con != null)
                 con.disconnect();
         }
         return null;
     }
 
     @Override
-    public void onCancelled() {}
+    public void onCancelled() {
+    }
 
     @Override
     public void onPostExecute(Manga manga) {
         Log.i("DownloadFavoriteManga", "Post Execute");
 
-        DialogFragment frag = (DialogFragment)getFragmentManager().findFragmentByTag(LoadingDialog.TAG);
+        DialogFragment frag = (DialogFragment) getFragmentManager().findFragmentByTag(LoadingDialog.TAG);
         frag.dismiss();
 
-        if(manga != null) {
+        if (manga != null) {
             Collections.reverse(manga.chapters);
 
-            TaskFragment f = (TaskFragment)getFragmentManager().findFragmentByTag(TASKTAG);
-            Favorite favorite = (Favorite)f.getParam();
+            TaskFragment f = (TaskFragment) getFragmentManager().findFragmentByTag(TASKTAG);
+            Favorite favorite = (Favorite) f.getParam();
 
             Intent intent = new Intent(getApplicationContext(), ImageViewerActivity.class);
             intent.putExtra("chapter", favorite.progressChapter);
@@ -453,7 +664,7 @@ public class FavoriteActivity extends Activity implements
 
     @Override
     public void onLoadingDialogCancel() {
-        TaskFragment f = (TaskFragment)getFragmentManager().findFragmentByTag(TASKTAG);
+        TaskFragment f = (TaskFragment) getFragmentManager().findFragmentByTag(TASKTAG);
         f.cancel();
         adapter.updateFavorites();
     }
@@ -471,13 +682,13 @@ public class FavoriteActivity extends Activity implements
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             SharedPreferences preferences = App.getContext().getSharedPreferences(App.PREFSNAME, 0);
-            final Favorite f = (Favorite)getArguments().getSerializable("favorite");
+            final Favorite f = (Favorite) getArguments().getSerializable("favorite");
             assert f != null;
             String title = f.title;
             String[] items = new String[App.NUMBER_OF_TAGS + 1];
 
             items[0] = App.DEFAULT_TAG_NAMES[0];
-            for(int i = 1; i <= App.NUMBER_OF_TAGS; i++) {
+            for (int i = 1; i <= App.NUMBER_OF_TAGS; i++) {
                 items[i] = preferences.getString(App.PREF_TAGNAME + i, App.DEFAULT_TAG_NAMES[i]);
             }
 
@@ -507,7 +718,7 @@ public class FavoriteActivity extends Activity implements
             final SharedPreferences preferences = App.getContext().getSharedPreferences(App.PREFSNAME, 0);
             String[] items = new String[App.NUMBER_OF_TAGS];
 
-            for(int i = 1; i <= App.NUMBER_OF_TAGS; i++) {
+            for (int i = 1; i <= App.NUMBER_OF_TAGS; i++) {
                 items[i - 1] = preferences.getString(App.PREF_TAGNAME + i, App.DEFAULT_TAG_NAMES[i]);
             }
 
@@ -581,12 +792,12 @@ public class FavoriteActivity extends Activity implements
             String[] items = new String[App.NUMBER_OF_TAGS + 1];
 
             items[0] = App.DEFAULT_TAG_NAMES[0];
-            for(int i = 1; i <= App.NUMBER_OF_TAGS; i++) {
+            for (int i = 1; i <= App.NUMBER_OF_TAGS; i++) {
                 items[i] = preferences.getString(App.PREF_TAGNAME + i, App.DEFAULT_TAG_NAMES[i]);
             }
 
             final boolean[] checked = new boolean[App.NUMBER_OF_TAGS + 1];
-            for(int i = 0; i < checked.length; i++) {
+            for (int i = 0; i < checked.length; i++) {
                 checked[i] = preferences.getBoolean(App.PREF_FILTERTAG + i, true);
             }
 
@@ -641,7 +852,7 @@ public class FavoriteActivity extends Activity implements
                     .setPositiveButton("Apply", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            int selectedPosition = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
+                            int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
                             SharedPreferences.Editor editor = preferences.edit();
                             editor.putInt(App.PREF_SORT, selectedPosition);
                             editor.apply();

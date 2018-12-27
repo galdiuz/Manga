@@ -100,7 +100,11 @@ public class Favorite implements Serializable {
     }
 
     public static void saveFavorites() {
-        if(favorites == null) throw new NullPointerException("Get favorites first");
+        saveFavorites(true);
+    }
+
+    public static void saveFavorites(boolean saveToDrive) {
+        if (favorites == null) throw new NullPointerException("Get favorites first");
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         File file = new File(App.getContext().getFilesDir(), "favorites.json");
@@ -111,6 +115,10 @@ public class Favorite implements Serializable {
             bw.write(wah);
             bw.close();
             FileUtils.copyFile(file, new File(App.getContext().getFilesDir(), "favorites-backup.json"));
+
+            if (saveToDrive) {
+
+            }
         }
         catch (IOException e) {
             Log.e("SaveFavorites", "IOException", e);

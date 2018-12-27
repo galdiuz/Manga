@@ -53,7 +53,7 @@ public class App extends Application {
                     .denyCacheImageMultipleSizesInMemory()
                     .memoryCacheSizePercentage(50)
                     .diskCacheSize(104857600)
-                    .writeDebugLogs()
+                    //.writeDebugLogs()
                     .build();
             imageLoader.init(config);
         }

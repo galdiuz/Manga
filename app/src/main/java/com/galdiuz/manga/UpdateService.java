@@ -1,6 +1,6 @@
 package com.galdiuz.manga;
 
-import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
@@ -11,6 +11,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Process;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -27,18 +28,19 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 
 public class UpdateService extends Service {
     public static final int NOTIFICATION_ONGOING_ID = 1;
     public static final int NOTIFICATION_NEW_ID = 2;
+    public static final String NOTIFICATION_CHANNEL_ID = "com.galdiuz.manga.notification";
     public static final String UPDATE = "com.galdiuz.manga.UpdateService.UPDATE";
+
     public static final int PROGRESS = 0;
     public static final int DONE = 1;
 
     private LocalBroadcastManager broadcaster;
     private NotificationManager manager;
-    private Notification.Builder builder;
+    private NotificationCompat.Builder builder;
     private ServiceHandler serviceHandler;
 
     private final class ServiceHandler extends Handler {
@@ -59,7 +61,7 @@ public class UpdateService extends Service {
                 }
             }
             int i = 0;
-            for(Favorite f : list) {
+            for (Favorite f : list) {
                 i++;
                 broadcastProgress(i, list.size(), f.title);
                 HttpURLConnection con = null;
@@ -77,21 +79,21 @@ public class UpdateService extends Service {
                     JsonReader reader = new JsonReader(new InputStreamReader(con.getInputStream()));
 
                     Manga manga = gson.fromJson(reader, Manga.class);
-                    if(manga.lastChapterDate > f.lastChapterDate) {
-                        for(Chapter c : manga.chapters) {
-                            if(c.date == manga.lastChapterDate) {
+                    if (manga.lastChapterDate > f.lastChapterDate) {
+                        for (Chapter c : manga.chapters) {
+                            if (c.date == manga.lastChapterDate) {
                                 f.lastChapterNumber = c.number;
                                 break;
                             }
                         }
-                        if(f.progressChapter != null && f.lastChapterNumber != f.progressChapter.number) {
+                        if (f.progressChapter != null && f.lastChapterNumber != f.progressChapter.number) {
                             updated.add(f);
                             f.markAsNew = true;
                         }
                         f.lastChapterDate = manga.lastChapterDate;
                     }
                 }
-                catch(IOException ex) {
+                catch (IOException ex) {
                     Log.e("UpdateTask", "Exception", ex);
                 }
                 finally {
@@ -101,17 +103,17 @@ public class UpdateService extends Service {
                 }
             }
             manager.cancel(NOTIFICATION_ONGOING_ID);
-            if(updated.size() > 0) {
+            if (updated.size() > 0) {
                 builder.setContentTitle("Manga")
                         .setContentText(getString(R.string.favorite_notification_new_chapters, updated.size()))
                         .setProgress(0, 0, false)
                         .setOngoing(false);
                 manager.notify(NOTIFICATION_NEW_ID, builder.build());
 
-                for(Favorite f : updated) {
+                for (Favorite f : updated) {
                     f.updated = true;
                 }
-                Favorite.saveFavorites();
+                Favorite.saveFavorites(true);
             }
             Intent broadcastIntent = new Intent(UPDATE);
             broadcastIntent.putExtra("type", DONE);
@@ -128,7 +130,8 @@ public class UpdateService extends Service {
         super.onCreate();
         broadcaster = LocalBroadcastManager.getInstance(this);
         manager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
-        builder = new Notification.Builder(UpdateService.this);
+        manager.createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL_ID, "Update", NotificationManager.IMPORTANCE_LOW));
+        builder = new NotificationCompat.Builder(UpdateService.this, NOTIFICATION_CHANNEL_ID);
 
         builder.setContentTitle(getString(R.string.favorite_notification_checking_title))
                 .setSmallIcon(R.mipmap.ic_launcher);

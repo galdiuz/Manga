@@ -173,6 +173,10 @@ public class ChapterListActivity extends Activity implements
 
     @Override
     public Manga doInBackground(String id) {
+        if (android.os.Debug.isDebuggerConnected()) {
+            android.os.Debug.waitForDebugger();
+        }
+
         HttpURLConnection con = null;
         try {
             Log.i("DownloadChapterList", "Open Connection");
@@ -184,6 +188,7 @@ public class ChapterListActivity extends Activity implements
             JsonReader reader = new JsonReader(new InputStreamReader(con.getInputStream()));
 
             manga = gson.fromJson(reader, Manga.class);
+
             manga.id = id;
             manga.title = StringEscapeUtils.unescapeHtml4(manga.title);
             manga.description = StringEscapeUtils.unescapeHtml4(manga.description);
@@ -268,7 +273,7 @@ public class ChapterListActivity extends Activity implements
 
             ImageView image = (ImageView)view.findViewById(R.id.image);
             if(manga.image != null) {
-                App.getImageLoader().displayImage("https://cdn.mangaeden.com/mangasimg/" + manga.image, image);
+                App.getImageLoader().displayImage("http://cdn.mangaeden.com/mangasimg/" + manga.image, image);
             }
 
             return builder.create();

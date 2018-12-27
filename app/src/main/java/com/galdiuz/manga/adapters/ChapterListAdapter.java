@@ -101,7 +101,7 @@ public class ChapterListAdapter extends BaseAdapter {
             holder.description.setText(manga.description);
             holder.image.setScaleType(ImageView.ScaleType.CENTER_CROP);
             if(manga.image != null) {
-                App.getImageLoader().displayImage("https://cdn.mangaeden.com/mangasimg/" + manga.image, holder.image);
+                App.getImageLoader().displayImage("http://cdn.mangaeden.com/mangasimg/" + manga.image, holder.image);
             }
             else {
                 // TODO: Load image missing image

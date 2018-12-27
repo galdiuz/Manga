@@ -22,7 +22,7 @@
     <string name="action_filter">Filter tags</string>
     <string name="action_search">Search</string>
     <string name="action_update">Check for new chapters</string>
-    <string name="action_updatemode">Update mode</string>
+    <string name="action_updatemode">Toggle updates</string>
     <string name="action_tag_names">Rename tags</string>
     <string name="action_backup">Backup to SD card</string>
     <string name="action_restore">Restore from SD card</string>

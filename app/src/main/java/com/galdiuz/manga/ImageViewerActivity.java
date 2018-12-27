@@ -529,7 +529,7 @@ public class ImageViewerActivity extends Activity implements CustomPhotoViewAtta
         loadingTextView.setVisibility(View.VISIBLE);
         loadingAnimator.start();
 
-        final String uri = "https://cdn.mangaeden.com/mangasimg/" + pages[page - 1].url;
+        final String uri = "http://cdn.mangaeden.com/mangasimg/" + pages[page - 1].url;
 
         imageLoader.displayImage(uri, imageViewOther, new ImageLoadingListener() {
             @Override
@@ -578,7 +578,7 @@ public class ImageViewerActivity extends Activity implements CustomPhotoViewAtta
             new DownloadPages(chapter, page, remaining, true).execute();
         }
         else {
-            String uri = "https://cdn.mangaeden.com/mangasimg/" + pages[page - 1].url;
+            String uri = "http://cdn.mangaeden.com/mangasimg/" + pages[page - 1].url;
             List<String> keys = MemoryCacheUtils.findCacheKeysForImageUri(uri, imageLoader.getMemoryCache());
             if(keys.size() > 0) {
                 // Image already in memory, skip
